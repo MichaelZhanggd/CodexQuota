@@ -2,6 +2,19 @@
 
 一个 macOS 原生 Codex 额度组件。安装位置：`~/Applications/Codex Quota.app`。
 
+## 应用截图
+
+<p align="center">
+  <img src="docs/images/expanded-dark.png" width="420" alt="Codex Quota 展开视图">
+</p>
+
+<p align="center">
+  <img src="docs/images/minibar-light.png" width="420" alt="Codex Quota 浅色 minibar"><br>
+  <img src="docs/images/minibar-dark.png" width="420" alt="Codex Quota 深色 minibar">
+</p>
+
+> 截图中的额度为界面预览样例，不是真实账号数据。
+
 ## 使用
 
 1. 打开 **Codex Quota.app**，确保 Codex 桌面应用已登录。
