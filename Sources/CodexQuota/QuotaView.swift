@@ -160,13 +160,6 @@ struct QuotaView: View {
 
     private var mini: some View {
         ZStack {
-            HStack(spacing: 8) {
-                miniQuota(model.bucket?.primary, fallback: "5 小时", warningBelow: 30)
-                Circle().fill(secondary.opacity(0.45)).frame(width: 2, height: 2)
-                miniQuota(model.bucket?.secondary, fallback: "每周", warningBelow: 20)
-            }
-            .allowsHitTesting(false)
-
             HStack(spacing: 0) {
                 DragHandle(start: { model.onDragStart?() }, end: { model.onDragEnd?() })
                     .overlay {
@@ -192,6 +185,11 @@ struct QuotaView: View {
                         .opacity(0.75)
                 }
             }
+            HStack(spacing: 8) {
+                miniQuota(model.bucket?.primary, fallback: "5 小时", warningBelow: 30)
+                Circle().fill(secondary.opacity(0.45)).frame(width: 2, height: 2).allowsHitTesting(false)
+                miniQuota(model.bucket?.secondary, fallback: "每周", warningBelow: 20)
+            }
         }.padding(.horizontal, 12).frame(width: 304, height: 46)
         .contextMenu { modeMenu; Button("刷新额度") { model.refresh() }; Button("展开") { model.compact = false } }
         .help(model.error ?? "Codex 剩余额度")
@@ -205,6 +203,23 @@ struct QuotaView: View {
                 .foregroundStyle(window.map { $0.remainingPercent < warningBelow } == true
                     ? (scheme == .dark ? Color(red: 1, green: 0.68, blue: 0.30) : Color(red: 0.66, green: 0.35, blue: 0.04)) : ink)
         }.lineLimit(1).opacity(model.isStale() ? 0.5 : 1)
+        .overlay {
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                DragHandle(start: { model.onDragStart?() }, end: { model.onDragEnd?() })
+                    .help(resetHelp(window, now: context.date))
+            }
+        }
+    }
+
+    private func resetHelp(_ window: QuotaWindow?, now: Date) -> String {
+        guard let window else { return "重置时间未知" }
+        var text = window.resetText(now: now)
+        if window.windowDurationMins == 10080, let timestamp = window.resetsAt, timestamp > now.timeIntervalSince1970 {
+            let date = Date(timeIntervalSince1970: timestamp)
+            text = date.formatted(.dateTime.month().day().weekday().hour().minute()) + " 重置（\(text)）"
+        }
+        if model.isStale(at: now) { text += " · 数据已过期，等待刷新" }
+        return text
     }
 
     private func toolButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
