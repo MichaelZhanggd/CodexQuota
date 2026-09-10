@@ -70,6 +70,15 @@ if let index = args.firstIndex(of: "--render-previews"), args.count > index + 1 
         window.orderFrontRegardless()
         try await Task.sleep(nanoseconds: 200_000_000)
         host.layoutSubtreeIfNeeded(); window.displayIfNeeded()
+        if compact {
+            @MainActor func quotaTooltipCount(_ view: NSView) -> Int {
+                (view.toolTip?.contains("重置") == true ? 1 : 0)
+                    + view.subviews.reduce(0) { $0 + quotaTooltipCount($1) }
+            }
+            guard quotaTooltipCount(host) >= 2 else {
+                fputs("Missing native quota tooltips\n", stderr); exit(1)
+            }
+        }
         guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { exit(1) }
         host.cacheDisplay(in: host.bounds, to: rep)
         try rep.representation(using: .png, properties: [:])!.write(to: directory.appendingPathComponent("\(name).png"))

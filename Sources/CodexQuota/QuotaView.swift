@@ -6,8 +6,12 @@ import QuotaCore
 private struct DragHandle: NSViewRepresentable {
     let start: () -> Void
     let end: () -> Void
-    func makeNSView(context: Context) -> Handle { let view = Handle(); view.start = start; view.end = end; return view }
-    func updateNSView(_ nsView: Handle, context: Context) { nsView.start = start; nsView.end = end }
+    var tooltip: String? = nil
+    func makeNSView(context: Context) -> Handle { let view = Handle(); view.start = start; view.end = end; view.toolTip = tooltip; return view }
+    func updateNSView(_ nsView: Handle, context: Context) {
+        nsView.start = start; nsView.end = end
+        if nsView.toolTip != tooltip { nsView.toolTip = tooltip }
+    }
     final class Handle: NSView {
         var start: (() -> Void)?
         var end: (() -> Void)?
@@ -205,8 +209,8 @@ struct QuotaView: View {
         }.lineLimit(1).opacity(model.isStale() ? 0.5 : 1)
         .overlay {
             TimelineView(.periodic(from: .now, by: 60)) { context in
-                DragHandle(start: { model.onDragStart?() }, end: { model.onDragEnd?() })
-                    .help(resetHelp(window, now: context.date))
+                DragHandle(start: { model.onDragStart?() }, end: { model.onDragEnd?() },
+                           tooltip: resetHelp(window, now: context.date))
             }
         }
     }
