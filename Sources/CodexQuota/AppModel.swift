@@ -114,9 +114,13 @@ final class AppModel: ObservableObject {
 
     static func codexExecutable() -> URL? {
         let bundle = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.openai.codex")
-        let candidates = [bundle?.appendingPathComponent("Contents/Resources/codex"),
-                          URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex"),
-                          URL(fileURLWithPath: "/Applications/Codex.app/Contents/Resources/codex")]
-        return candidates.compactMap { $0 }.first { FileManager.default.isExecutableFile(atPath: $0.path) }
+        let bundles = [bundle, URL(fileURLWithPath: "/Applications/ChatGPT.app"),
+                       URL(fileURLWithPath: "/Applications/Codex.app")].compactMap { $0 }
+        let candidates = bundles.flatMap { bundle in
+            ["Contents/Resources/codex-cli/bin/codex", "Contents/Resources/codex"].map {
+                bundle.appendingPathComponent($0)
+            }
+        }
+        return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
 }
